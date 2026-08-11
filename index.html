@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Invoice — free, private, works on your phone</title>
+<meta name="description" content="Make a professional invoice in under a minute. Your details stay on your device and are never uploaded.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F2F0EB; --paper:#FFFFFF; --ink:#16181C; --muted:#6B7075;
+    --line:#DCD9D2; --soft:#F8F7F4;
+    --brand:#1E4A3C; --brand-soft:#E2EDE8; --brand-ink:#123128;
+    --req:#C0392B; --radius:10px;
+    --acc:#1E4A3C;        /* accent as a FILL colour */
+    --acc-ink:#FFFFFF;    /* text drawn ON the accent — computed for contrast */
+    --acc-text:#1E4A3C;   /* accent used AS text on white — darkened if needed */
+  }
+  *{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-size:16px;
+       font-family:'Schibsted Grotesk',system-ui,-apple-system,sans-serif;
+       -webkit-font-smoothing:antialiased}
+  .tnum{font-variant-numeric:tabular-nums}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 18px 150px}
+
+  .masthead{display:flex;align-items:center;justify-content:space-between;gap:14px;
+            padding:20px 0 16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:11px}
+  .mark{width:32px;height:32px;border-radius:9px;background:var(--brand);color:#fff;
+        display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+  .brand h1{margin:0;font-size:19px;font-weight:700;letter-spacing:-.025em}
+  .brand .tag{font-size:12px;color:var(--muted);display:block;margin-top:1px}
+  .privacy{font-size:12px;color:var(--brand-ink);background:var(--brand-soft);
+           border:1px solid #CBDDD5;border-radius:999px;padding:6px 13px;font-weight:600}
+
+  .cols{display:grid;grid-template-columns:1fr;gap:24px}
+  @media(min-width:980px){
+    .cols{grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:32px;align-items:start}
+    .previewPane{position:sticky;top:20px}
+  }
+
+  details.card{background:var(--paper);border:1px solid var(--line);
+               border-radius:var(--radius);margin-bottom:13px;overflow:hidden}
+  details.card > summary{list-style:none;cursor:pointer;padding:15px 16px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    font-size:14.5px;font-weight:600;letter-spacing:-.01em}
+  summary::-webkit-details-marker{display:none}
+  .step{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;
+        border-radius:6px;background:var(--brand-soft);color:var(--brand-ink);
+        font-size:11.5px;font-weight:700;margin-right:9px}
+  .sub{font-size:12px;color:var(--muted);font-weight:500}
+  .chev{color:var(--muted);font-size:12px;transition:transform .18s}
+  details[open] .chev{transform:rotate(90deg)}
+  details[open] > summary{border-bottom:1px solid var(--line)}
+  .body{padding:16px}
+
+  fieldset{border:0;padding:0;margin:0}
+  legend{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+         color:var(--muted);padding:0;margin-bottom:10px}
+  .grouped{background:var(--soft);border:1px solid var(--line);border-radius:8px;
+           padding:13px;margin-bottom:14px}
+
+  label{display:block;font-size:11px;font-weight:600;letter-spacing:.09em;
+        text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+  .req{color:var(--req);margin-left:2px}
+  input,textarea,select{width:100%;font-family:inherit;font-size:15px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line);border-radius:7px;
+    padding:10px 11px;-webkit-appearance:none;appearance:none}
+  textarea{min-height:60px;resize:vertical;line-height:1.45}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--brand);
+    box-shadow:0 0 0 3px var(--brand-soft)}
+  input.bad,textarea.bad{border-color:var(--req);box-shadow:0 0 0 3px #FBECEA}
+  .field{margin-bottom:12px}
+  .r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.5}
+  select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
+    linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:calc(100% - 17px) 52%,calc(100% - 12px) 52%;
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
+
+  .item{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;
+        background:var(--soft)}
+  .item .top{display:flex;gap:8px;align-items:flex-start;margin-bottom:9px}
+  .rm{flex:0 0 auto;width:36px;height:39px;border:1px solid var(--line);background:var(--paper);
+      border-radius:7px;color:var(--muted);cursor:pointer;font-size:16px}
+  .rm:hover{color:var(--req);border-color:var(--req)}
+  .item .nums{display:grid;grid-template-columns:1fr 1.3fr auto;gap:8px;align-items:end}
+  .linetotal{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+             border-top:1px solid var(--line);margin-top:4px;padding-top:13px;
+             font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+             color:var(--muted)}
+  .linetotal b{font-size:19px;font-weight:700;letter-spacing:-.025em;color:var(--ink);
+               text-transform:none;letter-spacing:-.025em}
+  .item .amt{font-size:14px;font-weight:700;padding-bottom:11px;white-space:nowrap;color:var(--brand-ink)}
+
+  .btn{font-family:inherit;font-size:14px;font-weight:600;padding:11px 16px;border-radius:8px;
+       border:1px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer}
+  .btn:hover{background:var(--brand-ink)}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn.ghost:hover{background:var(--soft);border-color:var(--ink)}
+  .btn.wide{width:100%}
+  .btn.sm{padding:8px 13px;font-size:13px}
+  .btn:disabled{opacity:.4;cursor:default}
+
+  .themes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .th{border:1.5px solid var(--line);border-radius:8px;padding:0;cursor:pointer;
+      background:var(--paper);overflow:hidden;font-family:inherit}
+  .th[aria-pressed="true"]{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .th .swatch{height:34px;display:block}
+  .th .nm{font-size:10.5px;font-weight:600;padding:6px 4px;color:var(--muted);
+          display:block;letter-spacing:.03em}
+  .accents{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  .dot{width:27px;height:27px;border-radius:50%;border:2px solid transparent;cursor:pointer;
+       padding:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+  .dot[aria-pressed="true"]{border-color:var(--ink)}
+
+  .pvhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;gap:10px}
+  .pvhead span{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+  .paper{background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+         padding:40px 36px;box-shadow:0 1px 4px rgba(0,0,0,.05);color:#16181C}
+  .accentbar{display:none}
+
+  .inv-top{display:flex;justify-content:space-between;align-items:flex-start;gap:22px;
+           padding-bottom:20px;border-bottom:2px solid var(--ink)}
+  .inv-top h2{margin:0 0 3px;font-size:27px;font-weight:700;letter-spacing:-.03em}
+  .inv-logo{max-height:52px;max-width:170px;object-fit:contain;margin-bottom:10px;display:block}
+  .inv-meta{text-align:right;font-size:12.5px;line-height:1.65;flex:0 0 auto}
+  .inv-meta b{font-weight:600}
+  .inv-num{font-size:12.5px;color:#8A8F92}
+
+  .parties{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin:22px 0 24px}
+  .party h3{margin:0 0 7px;font-size:10.5px;font-weight:700;letter-spacing:.11em;
+            text-transform:uppercase;color:var(--muted)}
+  .party .nm{font-size:14.5px;font-weight:600;margin-bottom:3px}
+  .party .ln{font-size:12.5px;color:#5C6166;line-height:1.65;white-space:pre-line}
+
+  table{width:100%;border-collapse:collapse;margin-bottom:16px}
+  th{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+     color:var(--muted);text-align:left;padding:0 0 8px;border-bottom:1px solid var(--line)}
+  th.r,td.r{text-align:right}
+  td{font-size:13.5px;padding:11px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  td.desc{padding-right:14px}
+
+  .totals{margin-left:auto;min-width:240px}
+  .totals .tr{display:flex;justify-content:space-between;gap:24px;font-size:13.5px;padding:6px 0}
+  .totals .tr.grand{border-top:2px solid var(--ink);margin-top:7px;padding-top:11px;
+                    font-size:19px;font-weight:700;letter-spacing:-.02em}
+
+  .payblock{margin-top:26px;padding-top:19px;border-top:1px solid var(--line);
+            display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  .payblock h3{margin:0 0 7px;font-size:10.5px;font-weight:700;letter-spacing:.11em;
+               text-transform:uppercase;color:var(--muted)}
+  .kv{font-size:12.5px;line-height:1.75}
+  .kv b{font-weight:600;color:#3A3F44}
+  .inv-note{margin-top:20px;font-size:12px;color:#5C6166;line-height:1.6;white-space:pre-line}
+
+  .paper[data-theme="modern"] .accentbar{display:block;height:7px;background:var(--acc);
+    margin:-40px -36px 26px;border-radius:10px 10px 0 0}
+  .paper[data-theme="modern"] .inv-top{border-bottom-color:var(--acc)}
+  .paper[data-theme="modern"] h2{color:var(--acc-text)}
+  .paper[data-theme="modern"] .totals .tr.grand{border-top-color:var(--acc);color:var(--acc-text)}
+  .paper[data-theme="modern"] th{color:var(--acc-text)}
+
+  .paper[data-theme="serif"]{font-family:'Newsreader',Georgia,serif}
+  .paper[data-theme="serif"] h2{font-size:31px;font-weight:500;letter-spacing:-.01em}
+  .paper[data-theme="serif"] th{font-family:'Schibsted Grotesk',sans-serif;font-size:10px}
+  .paper[data-theme="serif"] .inv-top{border-bottom-width:1px}
+  .paper[data-theme="serif"] .totals .tr.grand{border-top-width:1px;font-weight:600}
+
+  .paper[data-theme="minimal"] .inv-top{border-bottom:1px solid var(--line);padding-bottom:16px}
+  .paper[data-theme="minimal"] h2{font-size:17px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+  .paper[data-theme="minimal"] .totals .tr.grand{border-top:1px solid var(--ink);font-size:16px}
+  .paper[data-theme="minimal"] td,.paper[data-theme="minimal"] th{border-color:#EDEBE6}
+
+  .paper[data-theme="bold"] .inv-top{background:var(--acc);color:var(--acc-ink);margin:-40px -36px 26px;
+    padding:30px 36px;border-bottom:0;border-radius:10px 10px 0 0}
+  .paper[data-theme="bold"] .inv-top,
+  .paper[data-theme="bold"] .inv-top h2,
+  .paper[data-theme="bold"] .inv-top div,
+  .paper[data-theme="bold"] .inv-top .inv-num,
+  .paper[data-theme="bold"] .inv-meta,
+  .paper[data-theme="bold"] .inv-meta b{color:var(--acc-ink)}
+  .paper[data-theme="bold"] .inv-top .inv-num{opacity:.82}
+  .paper[data-theme="bold"] .totals .tr.grand{border-top-color:var(--acc);color:var(--acc-text)}
+
+  .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(242,240,235,.95);
+       backdrop-filter:blur(10px);border-top:1px solid var(--line);
+       padding:11px 18px calc(11px + env(safe-area-inset-bottom));z-index:40}
+  .bar .in{max-width:1200px;margin:0 auto;display:flex;gap:10px;align-items:center}
+  .bar .tot{flex:1 1 auto;min-width:0}
+  .bar .tot .k{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  .bar .tot .vlabel{font-size:14px;font-weight:600;letter-spacing:-.01em;
+                    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .sheet{position:fixed;inset:0;background:rgba(22,24,28,.5);z-index:60;display:none;
+         align-items:flex-end;justify-content:center}
+  .sheet.on{display:flex}
+  .sheet .inner{background:#fff;width:100%;max-width:520px;border-radius:16px 16px 0 0;
+    padding:24px 20px calc(24px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto}
+  @media(min-width:640px){.sheet{align-items:center}.sheet .inner{border-radius:16px}}
+  .sheet h3{margin:0 0 8px;font-size:19px;font-weight:700;letter-spacing:-.02em}
+  .sheet p{margin:0 0 14px;font-size:14px;line-height:1.55;color:var(--muted)}
+  .acts{display:flex;gap:9px;margin-top:8px}
+  .linkbox{font-family:ui-monospace,monospace;font-size:11.5px;background:var(--soft);
+    border:1px solid var(--line);border-radius:7px;padding:10px;word-break:break-all;
+    max-height:96px;overflow-y:auto;margin-bottom:12px}
+  .warn{font-size:12.5px;color:#8A3324;background:#FBEFEC;border-radius:7px;padding:10px 12px;
+        line-height:1.55;margin-bottom:13px}
+
+  .consent{display:flex;gap:10px;align-items:flex-start;background:var(--soft);
+           border:1px solid var(--line);border-radius:8px;padding:12px;margin:12px 0}
+  .consent input{width:18px;height:18px;flex:0 0 auto;margin-top:1px;appearance:auto;-webkit-appearance:checkbox}
+  .consent label{text-transform:none;letter-spacing:0;font-size:13px;font-weight:400;
+                 color:var(--ink);line-height:1.5;margin:0}
+
+  .toast{position:fixed;bottom:98px;left:50%;transform:translateX(-50%);background:var(--ink);
+    color:#fff;font-size:13.5px;font-weight:500;padding:11px 18px;border-radius:999px;z-index:70;
+    opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
+  .toast.on{opacity:1}
+
+  .foot{text-align:center;font-size:12px;color:var(--muted);line-height:1.75;padding:32px 0 8px}
+  .mobileOnly{display:block}
+  @media(min-width:980px){.mobileOnly{display:none}}
+
+  @media print{
+    @page{size:A4;margin:13mm}
+    body{background:#fff}
+    .masthead,.formPane,.bar,.sheet,.toast,.foot,.pvhead,.mobileOnly,.disclaimer{display:none!important}
+    .wrap{padding:0;max-width:none}
+    .cols{display:block}
+    .previewPane{position:static!important;display:block!important}
+    .paper{border:0;border-radius:0;box-shadow:none;padding:0}
+    .paper[data-theme="modern"] .accentbar{margin:0 0 24px;border-radius:0;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .paper[data-theme="bold"] .inv-top{margin:0 0 24px;border-radius:0;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
+    tr{page-break-inside:avoid}
+    .payblock{page-break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="brand">
+      <div class="mark">&#8377;</div>
+      <div><h1>Invoice</h1><span class="tag">Free. No sign-up. No limits.</span></div>
+    </div>
+    <div class="privacy">Nothing leaves your device</div>
+  </div>
+
+  <div class="cols">
+    <div class="formPane">
+
+      <details class="card" id="secYou">
+        <summary><span><span class="step">1</span>Your details <span class="sub" id="youSaved"></span></span><span class="chev">&#9656;</span></summary>
+        <div class="body">
+          <p class="hint" style="margin:0 0 14px">Fill this in once — it's saved on this
+            device, so every invoice after this takes about thirty seconds.</p>
+
+          <div class="field">
+            <label for="yName">Name or business<span class="req">*</span></label>
+            <input id="yName" placeholder="Enter your name or business name">
+          </div>
+          <div class="r2">
+            <div class="field"><label for="yEmail">Email<span class="req">*</span></label>
+              <input id="yEmail" type="email" placeholder="Enter your email"></div>
+            <div class="field"><label for="yPhone">Phone<span class="req">*</span></label>
+              <input id="yPhone" placeholder="Enter your phone"></div>
+          </div>
+
+          <fieldset class="grouped">
+            <legend>Address<span class="req">*</span></legend>
+            <div class="field"><label for="yStreet">Street</label>
+              <input id="yStreet" placeholder="Enter street address"></div>
+            <div class="r2">
+              <div class="field"><label for="yCity">City</label><input id="yCity" placeholder="Enter city"></div>
+              <div class="field"><label for="yState">State / region</label><input id="yState" placeholder="Enter state"></div>
+            </div>
+            <div class="r2">
+              <div class="field" style="margin-bottom:0"><label for="yZip">PIN / ZIP</label>
+                <input id="yZip" placeholder="Enter postcode"></div>
+              <div class="field" style="margin-bottom:0"><label for="yCountry">Country</label>
+                <input id="yCountry" placeholder="Enter country"></div>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="yTaxId">Tax ID <span style="text-transform:none;letter-spacing:0;font-weight:400">&mdash; PAN, GSTIN, VAT no.</span></label>
+            <input id="yTaxId" placeholder="Enter tax ID (optional)">
+          </div>
+
+          <fieldset class="grouped">
+            <legend>Payment details<span class="req">*</span></legend>
+            <div class="field"><label for="pAccName">Account name</label>
+              <input id="pAccName" placeholder="Enter account holder name"></div>
+            <div class="r2">
+              <div class="field"><label for="pAccNo">Account no. / IBAN</label>
+                <input id="pAccNo" placeholder="Enter account number"></div>
+              <div class="field"><label for="pIfsc">IFSC / SWIFT</label>
+                <input id="pIfsc" placeholder="Enter code"></div>
+            </div>
+            <div class="r2">
+              <div class="field" style="margin-bottom:0"><label for="pBank">Bank name</label>
+                <input id="pBank" placeholder="Enter bank name"></div>
+              <div class="field" style="margin-bottom:0"><label for="pUpi">UPI / PayPal</label>
+                <input id="pUpi" placeholder="Optional"></div>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="yLogo">Logo <span style="text-transform:none;letter-spacing:0;font-weight:400">&mdash; optional</span></label>
+            <input id="yLogo" type="file" accept="image/*" style="padding:8px">
+            <div class="hint" id="logoState"></div>
+          </div>
+
+          <div style="display:flex;gap:9px;flex-wrap:wrap">
+            <button class="btn sm" onclick="saveProfile(true)">Save my details</button>
+            <button class="btn ghost sm" onclick="openMyLink()">Get my personal link</button>
+            <button class="btn ghost sm" onclick="clearProfile()">Clear</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="card" open>
+        <summary><span><span class="step">2</span>Billed to</span><span class="chev">&#9656;</span></summary>
+        <div class="body">
+          <div class="field"><label for="cName">Client or brand<span class="req">*</span></label>
+            <input id="cName" placeholder="Enter client or brand name"></div>
+          <div class="r2">
+            <div class="field"><label for="cContact">Contact person</label>
+              <input id="cContact" placeholder="Enter contact name"></div>
+            <div class="field"><label for="cEmail">Email</label>
+              <input id="cEmail" type="email" placeholder="Enter their email"></div>
+          </div>
+          <div class="r2">
+            <div class="field"><label for="cCity">City</label><input id="cCity" placeholder="Enter city"></div>
+            <div class="field"><label for="cCountry">Country</label><input id="cCountry" placeholder="Enter country"></div>
+          </div>
+          <div class="field" style="margin-bottom:0"><label for="cTaxId">Their tax ID</label>
+            <input id="cTaxId" placeholder="Optional"></div>
+        </div>
+      </details>
+
+      <details class="card" open>
+        <summary><span><span class="step">3</span>What you're billing for<span class="req">*</span></span><span class="chev">&#9656;</span></summary>
+        <div class="body">
+          <div id="items"></div>
+          <button class="btn ghost wide sm" onclick="addItem()">+ Add another line</button>
+          <div class="r2" style="margin-top:15px">
+            <div class="field"><label for="taxLabel">Tax label</label>
+              <input id="taxLabel" placeholder="GST / VAT"></div>
+            <div class="field"><label for="taxRate">Rate %</label>
+              <input id="taxRate" type="number" inputmode="decimal" min="0" step="0.01" value="0"></div>
+          </div>
+          <div class="field"><label for="iNotes">Notes / terms</label>
+            <textarea id="iNotes" placeholder="Enter any payment terms or a thank you note"></textarea></div>
+          <div class="linetotal"><span>Invoice total</span><b class="tnum" id="itemsTotal">&mdash;</b></div>
+        </div>
+      </details>
+
+      <details class="card">
+        <summary><span><span class="step">4</span>Invoice details &amp; design</span><span class="chev">&#9656;</span></summary>
+        <div class="body">
+          <div class="r2">
+            <div class="field"><label for="iNum">Invoice number</label><input id="iNum"></div>
+            <div class="field"><label for="iCur">Currency</label><select id="iCur"></select></div>
+          </div>
+          <div class="r2">
+            <div class="field"><label for="iDate">Date</label><input id="iDate" type="date"></div>
+            <div class="field"><label for="iDue">Due</label><input id="iDue" type="date"></div>
+          </div>
+
+          <label style="margin-top:6px">Design</label>
+          <div class="themes" id="themes"></div>
+
+          <label>Accent colour</label>
+          <div class="accents" id="accents"></div>
+          <div class="hint" id="logoColorHint"></div>
+        </div>
+      </details>
+
+      <div class="mobileOnly" style="margin-top:4px">
+        <button class="btn ghost wide" onclick="scrollToPreview()">See the invoice</button>
+      </div>
+    </div>
+
+    <div class="previewPane" id="previewPane">
+      <div class="pvhead"><span>Preview</span></div>
+
+      <div class="paper" id="paper" data-theme="classic">
+        <div class="accentbar"></div>
+        <div class="inv-top">
+          <div>
+            <img id="pLogo" class="inv-logo" style="display:none" alt="">
+            <h2>INVOICE</h2>
+            <div class="inv-num" id="pNum"></div>
+          </div>
+          <div class="inv-meta" id="pMeta"></div>
+        </div>
+
+        <div class="parties">
+          <div class="party"><h3>From</h3>
+            <div class="nm" id="pFromName">Your name</div>
+            <div class="ln" id="pFrom"></div></div>
+          <div class="party"><h3>Billed to</h3>
+            <div class="nm" id="pToName">Client name</div>
+            <div class="ln" id="pTo"></div></div>
+        </div>
+
+        <table>
+          <thead><tr><th style="width:52%">Description</th>
+            <th class="r">Qty</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead>
+          <tbody id="pRows"></tbody>
+        </table>
+
+        <div class="totals" id="pTotals"></div>
+
+        <div class="payblock">
+          <div><h3>Payment details</h3><div class="kv" id="pPay">&mdash;</div></div>
+          <div><h3>Reference</h3><div class="kv" id="pRef"></div></div>
+        </div>
+        <div class="inv-note" id="pNotes"></div>
+      </div>
+
+      <p class="hint disclaimer" style="margin-top:12px">
+        This produces a professional invoice, not a guaranteed tax-compliant one.
+        GST, VAT and sales-tax rules differ by country &mdash; check what yours
+        require before sending.
+      </p>
+    </div>
+  </div>
+
+  <div class="foot">
+    Runs entirely in your browser. Your invoice details are stored on your device
+    and are never uploaded.<br>Free forever, no account, no limits.
+  </div>
+</div>
+
+<div class="bar"><div class="in">
+  <div class="tot"><div class="k">Invoice</div><div class="vlabel" id="barLabel">Ready when you are</div></div>
+  <button class="btn ghost" onclick="shareTool()">Share</button>
+  <button class="btn" onclick="doSave()">Save as PDF</button>
+</div></div>
+
+<div class="sheet" id="linkSheet" onclick="if(event.target===this)closeSheet('linkSheet')">
+  <div class="inner">
+    <h3>Your personal link</h3>
+    <p>Bookmark this or message it to yourself. Open it on any device and your
+      details are already filled in &mdash; which is the point, since a browser
+      can't remember you on a phone you set nothing up on.</p>
+    <div class="warn"><b>Keep this private.</b> Your payment details are inside the
+      link itself. Don't post it anywhere public &mdash; use Share to send other
+      people the tool.</div>
+    <div class="linkbox" id="myLink"></div>
+    <div class="acts"><button class="btn ghost" onclick="closeSheet('linkSheet')">Close</button>
+      <button class="btn" onclick="copyMyLink()">Copy link</button></div>
+  </div>
+</div>
+
+<div class="sheet" id="shareSheet" onclick="if(event.target===this)closeSheet('shareSheet')">
+  <div class="inner">
+    <h3>Invoice sorted?</h3>
+    <p>If this saved you a scramble, send it to someone who invoices for a living.
+      Free, no sign-up, and nobody's data goes anywhere.</p>
+    <div class="acts" style="margin-bottom:18px">
+      <button class="btn ghost" onclick="closeSheet('shareSheet')">Not now</button>
+      <button class="btn" onclick="shareTool()">Share it</button>
+    </div>
+
+    <div style="border-top:1px solid var(--line);padding-top:16px">
+      <p style="margin-bottom:10px"><b style="color:var(--ink)">Want to hear when I build
+        the next one?</b><br>I make free tools like this for freelancers and creators.</p>
+      <div class="field"><input id="subEmail" type="email" placeholder="Enter your email"></div>
+      <div class="consent">
+        <input type="checkbox" id="subConsent">
+        <label for="subConsent">Yes, email me occasionally about new free tools.
+          Nothing else, never shared with anyone, unsubscribe in one click.</label>
+      </div>
+      <button class="btn wide" onclick="subscribe()" id="subBtn">Keep me posted</button>
+      <p class="hint" style="margin-top:9px">Only your email is sent, and only if you
+        tick the box. Your invoice details never leave this device either way.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Paste your Apps Script /exec URL here to collect emails.
+   Left blank, the signup box simply won't send anything.
+   ============================================================ */
+var SUBSCRIBE_URL = '';
+
+var CURRENCIES=[['INR','\u20B9','en-IN'],['USD','$','en-US'],['EUR','\u20AC','de-DE'],
+['GBP','\u00A3','en-GB'],['AED','AED','en-AE'],['SGD','S$','en-SG'],['AUD','A$','en-AU'],
+['CAD','C$','en-CA'],['JPY','\u00A5','ja-JP'],['CHF','CHF','de-CH'],['SEK','kr','sv-SE'],
+['ZAR','R','en-ZA'],['NZD','NZ$','en-NZ'],['MYR','RM','ms-MY'],['LKR','Rs','si-LK']];
+
+var THEMES=[
+  ['classic','Classic','linear-gradient(135deg,#fff 50%,#16181C 50%)'],
+  ['modern','Modern','linear-gradient(180deg,var(--acc) 26%,#fff 26%)'],
+  ['serif','Serif','linear-gradient(135deg,#fff 50%,#4A4540 50%)'],
+  ['bold','Bold','var(--acc)']
+];
+var ACCENTS=['#16181C','#1E4A3C','#23405F','#7A2E3B','#8A5A24','#3E4A7A'];
+
+var PROFILE=['yName','yEmail','yPhone','yStreet','yCity','yState','yZip','yCountry',
+             'yTaxId','pAccName','pAccNo','pIfsc','pBank','pUpi'];
+var REQUIRED=['yName','yEmail','yPhone','yStreet','yCity','yCountry',
+              'pAccName','pAccNo','pIfsc','cName'];
+var LOGO='',LOGO_COLOR='';
+
+var $=function(i){return document.getElementById(i)};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+
+/* ---------- contrast ----------
+   Any accent can be chosen, including one sampled from someone's logo, so text
+   colour is derived rather than guessed. Two separate jobs: what to draw ON the
+   accent, and how the accent behaves when it IS the text. */
+function hexRgb(h){h=String(h).replace('#','');
+  if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]}
+function rgbHex(r,g,b){return '#'+[r,g,b].map(function(v){
+  return ('0'+Math.max(0,Math.min(255,Math.round(v))).toString(16)).slice(-2)}).join('')}
+function lin(c){c/=255;return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4)}
+function lum(rgb){return 0.2126*lin(rgb[0])+0.7152*lin(rgb[1])+0.0722*lin(rgb[2])}
+function ratio(a,b){var l1=lum(a),l2=lum(b),hi=Math.max(l1,l2),lo=Math.min(l1,l2);
+  return (hi+0.05)/(lo+0.05)}
+
+/* White or near-black on top of this colour, whichever is more legible. */
+function inkOn(hex){
+  var rgb=hexRgb(hex);
+  return ratio(rgb,[255,255,255]) >= ratio(rgb,[22,24,28]) ? '#FFFFFF' : '#16181C';
+}
+
+/* Darken a colour until it clears WCAG AA (4.5:1) as body text on white, so a
+   pale brand colour can still be used without becoming unreadable. */
+function textSafe(hex){
+  var rgb=hexRgb(hex),guard=0;
+  while(ratio(rgb,[255,255,255])<4.5 && guard++<40){
+    rgb=[rgb[0]*0.92,rgb[1]*0.92,rgb[2]*0.92];
+  }
+  return rgbHex(rgb[0],rgb[1],rgb[2]);
+}
+
+function curInfo(){var c=$('iCur').value||'INR';
+  for(var i=0;i<CURRENCIES.length;i++)if(CURRENCIES[i][0]===c)return CURRENCIES[i];
+  return CURRENCIES[0]}
+function money(n){var c=curInfo();
+  try{return new Intl.NumberFormat(c[2],{style:'currency',currency:c[0],
+    minimumFractionDigits:2,maximumFractionDigits:2}).format(n||0)}
+  catch(e){return c[1]+' '+(Number(n)||0).toFixed(2)}}
+
+function addItem(d,q,r){
+  var w=document.createElement('div');w.className='item';
+  w.innerHTML='<div class="top">'+
+    '<input class="d" placeholder="Enter the service you provided" value="'+esc(d||'')+'">'+
+    '<button class="rm" title="Remove" onclick="this.closest(\'.item\').remove();render()">&times;</button></div>'+
+    '<div class="nums">'+
+    '<div><label>Qty</label><input class="q" type="number" inputmode="decimal" min="0" step="any" value="'+(q==null?1:q)+'"></div>'+
+    '<div><label>Rate</label><input class="r" type="number" inputmode="decimal" min="0" step="any" value="'+(r==null?'':r)+'" placeholder="0"></div>'+
+    '<div class="amt tnum">&mdash;</div></div>';
+  $('items').appendChild(w);
+  w.querySelectorAll('input').forEach(function(i){
+    i.addEventListener('input',function(){i.classList.remove('bad');render()})});
+  render();
+}
+function readItems(){return [].map.call(document.querySelectorAll('#items .item'),function(el){
+  var q=parseFloat(el.querySelector('.q').value)||0,r=parseFloat(el.querySelector('.r').value)||0;
+  return {d:el.querySelector('.d').value,q:q,r:r,amt:q*r,el:el}})}
+
+function joinComma(a){return a.filter(Boolean).join(', ')}
+function fmtDate(v){if(!v)return'';var d=new Date(v+'T00:00:00');
+  return isNaN(d)?v:d.toLocaleDateString(curInfo()[2],{day:'numeric',month:'short',year:'numeric'})}
+
+function render(){
+  var items=readItems(),sub=0;
+  items.forEach(function(i){sub+=i.amt;
+    i.el.querySelector('.amt').innerHTML=i.amt?money(i.amt):'&mdash;'});
+
+  var rate=parseFloat($('taxRate').value)||0;
+  var lbl=($('taxLabel').value||'Tax').trim();
+  var tax=sub*rate/100,grand=sub+tax;
+
+  $('pRows').innerHTML=items.filter(function(i){return i.d||i.amt}).map(function(i){
+    return '<tr><td class="desc">'+esc(i.d||'&mdash;')+'</td><td class="r tnum">'+(i.q||0)+
+    '</td><td class="r tnum">'+money(i.r)+'</td><td class="r tnum">'+money(i.amt)+'</td></tr>'
+  }).join('')||'<tr><td class="desc" colspan="4" style="color:#9A9E9B">Add what you\'re billing for</td></tr>';
+
+  var t='<div class="tr"><span>Subtotal</span><span class="tnum">'+money(sub)+'</span></div>';
+  if(rate)t+='<div class="tr"><span>'+esc(lbl)+' ('+rate+'%)</span><span class="tnum">'+money(tax)+'</span></div>';
+  t+='<div class="tr grand"><span>Total</span><span class="tnum">'+money(grand)+'</span></div>';
+  $('pTotals').innerHTML=t;
+  $('itemsTotal').textContent=grand?money(grand):'\u2014';
+  $('barLabel').textContent=$('cName').value
+    ? 'For '+$('cName').value : 'Ready when you are';
+
+  $('pNum').textContent=$('iNum').value?'No. '+$('iNum').value:'';
+  $('pMeta').innerHTML=
+    ($('iDate').value?'<div><b>Issued</b> '+fmtDate($('iDate').value)+'</div>':'')+
+    ($('iDue').value?'<div><b>Due</b> '+fmtDate($('iDue').value)+'</div>':'')+
+    ($('yTaxId').value?'<div style="opacity:.75">'+esc($('yTaxId').value)+'</div>':'');
+
+  $('pFromName').textContent=$('yName').value||'Your name';
+  $('pFrom').textContent=[$('yStreet').value,
+    joinComma([$('yCity').value,$('yState').value,$('yZip').value]),
+    $('yCountry').value,$('yEmail').value,$('yPhone').value].filter(Boolean).join('\n');
+
+  $('pToName').textContent=$('cName').value||'Client name';
+  $('pTo').textContent=[$('cContact').value,
+    joinComma([$('cCity').value,$('cCountry').value]),
+    $('cEmail').value,$('cTaxId').value?'Tax ID: '+$('cTaxId').value:''
+  ].filter(Boolean).join('\n');
+
+  var pay=[];
+  if($('pAccName').value)pay.push('<b>Account name</b> '+esc($('pAccName').value));
+  if($('pAccNo').value)pay.push('<b>Account no.</b> '+esc($('pAccNo').value));
+  if($('pIfsc').value)pay.push('<b>IFSC / SWIFT</b> '+esc($('pIfsc').value));
+  if($('pBank').value)pay.push('<b>Bank</b> '+esc($('pBank').value));
+  if($('pUpi').value)pay.push('<b>UPI / PayPal</b> '+esc($('pUpi').value));
+  $('pPay').innerHTML=pay.length?pay.join('<br>'):'&mdash;';
+
+  $('pRef').innerHTML=[$('iNum').value?'<b>Invoice</b> '+esc($('iNum').value):'',
+    $('cName').value?'<b>For</b> '+esc($('cName').value):'',
+    '<b>Amount</b> '+money(grand)].filter(Boolean).join('<br>');
+
+  $('pNotes').textContent=$('iNotes').value||'';
+  if(LOGO){$('pLogo').src=LOGO;$('pLogo').style.display='block'}
+  else{$('pLogo').style.display='none'}
+}
+
+function validate(){
+  var missing=[];
+  REQUIRED.forEach(function(k){
+    var el=$(k);if(!el)return;
+    var bad=!el.value.trim();
+    if(k==='yEmail'&&el.value.trim()&&!/^\S+@\S+\.\S+$/.test(el.value))bad=true;
+    el.classList.toggle('bad',bad);
+    if(bad)missing.push(el);
+  });
+  if(!readItems().some(function(i){return i.d.trim()&&i.amt>0})){
+    var first=$('items').querySelector('.d');
+    if(first){first.classList.add('bad');missing.push(first)}
+  }
+  return missing;
+}
+
+function collect(){var p={};PROFILE.forEach(function(k){p[k]=$(k).value});return p}
+function apply(p){if(!p)return;PROFILE.forEach(function(k){if(p[k]!=null&&$(k))$(k).value=p[k]});
+  if(p.logo){LOGO=p.logo;$('logoState').textContent='Logo saved.'}}
+
+function saveProfile(loud){
+  try{var p=collect();if(LOGO)p.logo=LOGO;
+    localStorage.setItem('invProfile2',JSON.stringify(p));
+    $('youSaved').textContent='\u00B7 saved';if(loud)toast('Saved on this device')}
+  catch(e){if(loud)toast('This browser blocked saving')}
+  render();
+}
+function loadProfile(){try{var r=localStorage.getItem('invProfile2');
+  if(r){apply(JSON.parse(r));$('youSaved').textContent='\u00B7 saved';return true}}catch(e){}
+  return false}
+function clearProfile(){
+  if(!confirm('Remove your saved details from this device?'))return;
+  try{localStorage.removeItem('invProfile2')}catch(e){}
+  PROFILE.forEach(function(k){if($(k))$(k).value=''});
+  LOGO='';$('logoState').textContent='';$('youSaved').textContent='';render();
+}
+function openMyLink(){
+  var packed=btoa(unescape(encodeURIComponent(JSON.stringify(collect()))));
+  $('myLink').textContent=location.origin+location.pathname+'#p='+packed;
+  $('linkSheet').classList.add('on');
+}
+function copyMyLink(){copy($('myLink').textContent);toast('Copied \u2014 keep it private')}
+function readHash(){
+  var m=location.hash.match(/[#&]p=([^&]+)/);if(!m)return false;
+  try{apply(JSON.parse(decodeURIComponent(escape(atob(m[1])))));
+    history.replaceState(null,'',location.pathname);
+    $('youSaved').textContent='\u00B7 loaded from link';toast('Your details loaded');return true}
+  catch(e){return false}
+}
+
+function setTheme(id){
+  $('paper').setAttribute('data-theme',id);
+  [].forEach.call(document.querySelectorAll('#themes .th'),function(b){
+    b.setAttribute('aria-pressed',b.getAttribute('data-t')===id)});
+  try{localStorage.setItem('invTheme',id)}catch(e){}
+}
+function setAccent(hex){
+  var root=document.documentElement.style;
+  root.setProperty('--acc',hex);
+  root.setProperty('--acc-ink',inkOn(hex));
+  root.setProperty('--acc-text',textSafe(hex));
+  [].forEach.call(document.querySelectorAll('#accents .dot'),function(b){
+    b.setAttribute('aria-pressed',b.getAttribute('data-c')===hex)});
+  try{localStorage.setItem('invAccent',hex)}catch(e){}
+}
+
+/* Pulls the dominant saturated colour out of an uploaded logo, so the invoice
+   picks up a brand colour without anyone needing to know a hex code. */
+function logoColour(img){
+  try{
+    var s=44,c=document.createElement('canvas');c.width=s;c.height=s;
+    var x=c.getContext('2d');x.drawImage(img,0,0,s,s);
+    var d=x.getImageData(0,0,s,s).data,buckets={},best=null;
+    for(var i=0;i<d.length;i+=4){
+      var r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];if(a<200)continue;
+      var mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+      var sat=mx===0?0:(mx-mn)/mx,lum=(0.299*r+0.587*g+0.114*b)/255;
+      if(sat<0.22||lum>0.93||lum<0.06)continue;
+      var k=Math.round(r/28)+','+Math.round(g/28)+','+Math.round(b/28);
+      buckets[k]=buckets[k]||{n:0,r:0,g:0,b:0};
+      buckets[k].n++;buckets[k].r+=r;buckets[k].g+=g;buckets[k].b+=b;
+    }
+    for(var k2 in buckets)if(!best||buckets[k2].n>best.n)best=buckets[k2];
+    if(!best)return'';
+    var R=Math.round(best.r/best.n),G=Math.round(best.g/best.n),B=Math.round(best.b/best.n);
+    var l=(0.299*R+0.587*G+0.114*B)/255;
+    if(l>0.62){var f=0.62/l;R=Math.round(R*f);G=Math.round(G*f);B=Math.round(B*f)}
+    return '#'+[R,G,B].map(function(v){return ('0'+v.toString(16)).slice(-2)}).join('');
+  }catch(e){return''}
+}
+
+function renderAccents(){
+  var list=ACCENTS.slice();
+  if(LOGO_COLOR&&list.indexOf(LOGO_COLOR)<0)list.push(LOGO_COLOR);
+  $('accents').innerHTML=list.map(function(c){
+    return '<button class="dot" data-c="'+c+'" style="background:'+c+
+      '" onclick="setAccent(\''+c+'\')" aria-label="Accent colour"></button>'}).join('');
+  $('logoColorHint').textContent=LOGO_COLOR?'The last swatch is taken from your logo.':'';
+  var cur=document.documentElement.style.getPropertyValue('--acc').trim()||ACCENTS[1];
+  setAccent(cur);
+}
+
+function shareTool(){
+  var url=location.origin+location.pathname;
+  var data={title:'Free invoice generator',
+    text:'Make an invoice in under a minute. No sign-up, and your details never leave your device.',
+    url:url};
+  if(navigator.share){navigator.share(data)['catch'](function(){})}
+  else{copy(url);toast('Link copied')}
+}
+
+function subscribe(){
+  var email=$('subEmail').value.trim();
+  if(!/^\S+@\S+\.\S+$/.test(email)){toast('Enter a valid email');return}
+  if(!$('subConsent').checked){toast('Tick the box to confirm you\'re happy');return}
+  if(!SUBSCRIBE_URL){toast('Signup isn\'t set up yet');return}
+
+  var btn=$('subBtn');btn.disabled=true;btn.textContent='Sending\u2026';
+  var fd=new FormData();
+  fd.append('email',email);
+  fd.append('consent','yes');
+  fd.append('source','invoice-generator');
+  fd.append('ts',new Date().toISOString());
+
+  fetch(SUBSCRIBE_URL,{method:'POST',mode:'no-cors',body:fd}).then(function(){
+    btn.textContent='Thanks!';toast('You\'re on the list');
+    setTimeout(function(){closeSheet('shareSheet')},1200);
+  })['catch'](function(){
+    btn.disabled=false;btn.textContent='Keep me posted';
+    toast('Couldn\'t send \u2014 try again later');
+  });
+}
+
+function copy(t){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t)}
+  else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);
+    a.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(a)}
+}
+
+function doSave(){
+  var missing=validate();
+  if(missing.length){
+    $('secYou').open=true;
+    toast(missing.length+' required field'+(missing.length>1?'s':'')+' still empty');
+    missing[0].scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(function(){try{missing[0].focus()}catch(e){}},420);
+    return;
+  }
+  saveProfile(false);
+  window.print();
+
+  var n=0;
+  try{n=(parseInt(localStorage.getItem('invCount')||'0',10)||0)+1;
+    localStorage.setItem('invCount',String(n))}catch(e){}
+  if(n===2||n%6===0)setTimeout(function(){$('shareSheet').classList.add('on')},1400);
+}
+
+/* A fresh number each visit. Nobody wants to think about sequencing while
+   standing in an airport queue. */
+function randomInvoiceNumber(){
+  var d=new Date();
+  var ym=String(d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2);
+  return 'INV-'+ym+'-'+String(Math.floor(1000+Math.random()*9000));
+}
+
+function closeSheet(id){$(id).classList.remove('on')}
+function scrollToPreview(){$('previewPane').scrollIntoView({behavior:'smooth'})}
+var tt;function toast(m){var e=$('toast');e.textContent=m;e.classList.add('on');
+  clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('on')},2400)}
+
+(function(){
+  $('iCur').innerHTML=CURRENCIES.map(function(c){
+    return '<option value="'+c[0]+'">'+c[0]+' \u2014 '+c[1]+'</option>'}).join('');
+
+  $('themes').innerHTML=THEMES.map(function(t){
+    return '<button class="th" data-t="'+t[0]+'" onclick="setTheme(\''+t[0]+'\')">'+
+      '<span class="swatch" style="background:'+t[2]+'"></span>'+
+      '<span class="nm">'+t[1]+'</span></button>'}).join('');
+
+  var fromLink=readHash();
+  if(!fromLink&&!loadProfile())$('secYou').open=true;
+
+  var today=new Date(),due=new Date(today.getTime()+15*864e5);
+  $('iDate').value=today.toISOString().slice(0,10);
+  $('iDue').value=due.toISOString().slice(0,10);
+  $('iNum').value=randomInvoiceNumber();
+
+  var sa='',st='';
+  try{sa=localStorage.getItem('invAccent')||'';st=localStorage.getItem('invTheme')||''}catch(e){}
+  setAccent(sa||ACCENTS[1]);
+  setTheme(st||'classic');
+  renderAccents();
+
+  $('yLogo').addEventListener('change',function(e){
+    var f=e.target.files&&e.target.files[0];if(!f)return;
+    if(f.size>900000){toast('Logo too large \u2014 use one under 900 KB');return}
+    var fr=new FileReader();
+    fr.onload=function(){
+      LOGO=fr.result;
+      var img=new Image();
+      img.onload=function(){LOGO_COLOR=logoColour(img);renderAccents();
+        if(LOGO_COLOR)setAccent(LOGO_COLOR);render()};
+      img.src=LOGO;
+      $('logoState').textContent='Logo added.';
+    };
+    fr.readAsDataURL(f);
+  });
+
+  document.querySelectorAll('input,textarea,select').forEach(function(el){
+    el.addEventListener('input',function(){el.classList.remove('bad');render()});
+    el.addEventListener('change',render);
+  });
+
+  addItem('',1,'');
+  render();
+})();
+</script>
+</body>
+</html>
