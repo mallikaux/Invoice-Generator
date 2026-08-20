@@ -271,7 +271,7 @@
   <div class="masthead">
     <div class="brand">
       <div class="mark">&#8377;</div>
-      <div><h1>Invoice</h1><span class="tag">Free. No sign-up. No limits.</span></div>
+      <div><h1>Invoice <span style="font-family:inherit;font-size:12px;font-weight:600;color:#B9BEC5;letter-spacing:.08em;vertical-align:middle">v2</span></h1><span class="tag">Free. No sign-up. No limits.</span></div>
     </div>
     <div class="privacy">Nothing leaves your device</div>
   </div>
@@ -493,9 +493,9 @@
       or a hello is more than enough.
     </div>
     <div class="links">
-      <a href="https://instagram.com/mallikaux" target="_blank" rel="noopener">@mallikaux</a>
-      <a href="https://www.mallikaux.com" target="_blank" rel="noopener">Website</a>
-      <a href="mailto:work@mallikaux.com">Say hello</a>
+      <a href="https://instagram.com/mallika.ux" target="_blank" rel="noopener">@mallika.ux</a>
+      <a href="https://YOUR-WEBSITE-HERE.com" target="_blank" rel="noopener">Website</a>
+      <a href="mailto:YOUR-EMAIL-HERE">Say hello</a>
       <!-- Leave this button as-is; it opens the signup sheet. -->
       <button type="button" onclick="openShare()">Get updates</button>
     </div>
@@ -561,7 +561,7 @@
 <script>
 /* Paste your Apps Script /exec URL between the quotes to collect emails.
    Left empty, the signup box simply does nothing. */
-var SUBSCRIBE_URL = 'https://script.google.com/macros/s/AKfycbxveIelUb2UwR6Kn5zHWXp409M66HqMuDKO9oDRziBUc8QQZLaeOCqRbDO7wAegD0YM/exec';
+var SUBSCRIBE_URL = '';
 
 var CURRENCIES=[['INR','\u20B9','en-IN'],['USD','$','en-US'],['EUR','\u20AC','de-DE'],
 ['GBP','\u00A3','en-GB'],['AED','AED','en-AE'],['SGD','S$','en-SG'],['AUD','A$','en-AU'],
@@ -756,6 +756,44 @@ function openMyLink(){
   }catch(e){toast('Could not build the link')}
 }
 function copyMyLink(){copy($('myLink').textContent);toast('Copied \u2014 keep it private')}
+/* ---------- arriving from another tool ----------
+   The collab tracker hands over a job as #job=<base64>. Your own details are
+   never in that payload — they come from your saved profile on this device, so
+   a prefill link carries nothing private. */
+function readJob(){
+  var m=location.hash.match(/[#&]job=([^&]+)/);
+  if(!m)return false;
+  var job;
+  try{job=JSON.parse(decodeURIComponent(escape(atob(m[1]))))}
+  catch(e){toast('That prefill link looked damaged');return false}
+  history.replaceState(null,'',location.pathname);
+
+  if(job.client){
+    if(job.client.name&&$('cName'))$('cName').value=job.client.name;
+    if(job.client.email&&$('cEmail'))$('cEmail').value=job.client.email;
+  }
+  if(job.cur&&$('iCur'))$('iCur').value=job.cur;
+  if(job.notes&&$('iNotes'))$('iNotes').value=job.notes;
+  if(job.ref&&$('iNum')&&!$('iNum').value)$('iNum').value=job.ref;
+
+  var lines=(job.items||[]).filter(function(x){return x&&x.d});
+  if(lines.length){
+    /* keep the first blank row and reuse it, then clone for the rest */
+    var host=$('items');
+    while(host.children.length>1)host.removeChild(host.lastChild);
+    lines.forEach(function(li,i){
+      if(i>0)addItem();
+      var row=host.children[i];
+      if(!row)return;
+      row.querySelector('.d').value=li.d||'';
+      row.querySelector('.q').value=li.q||1;
+      row.querySelector('.r').value=li.r||0;
+    });
+  }
+  render();
+  toast('Filled in from your collab tracker');
+  return true;
+}
 function readHash(){
   var m=location.hash.match(/[#&]p=([^&]+)/);if(!m)return false;
   try{applyProfile(JSON.parse(decodeURIComponent(escape(atob(m[1])))));
@@ -825,10 +863,13 @@ function subscribe(){
   if(!$('subConsent').checked){toast('Tick the box to confirm you\'re happy');return}
   if(!SUBSCRIBE_URL){toast('Signup isn\'t set up yet');return}
   var btn=$('subBtn');btn.disabled=true;btn.textContent='Sending\u2026';
-  var fd=new FormData();
-  fd.append('email',email);fd.append('consent','yes');
-  fd.append('source','invoice-generator');fd.append('ts',new Date().toISOString());
-  fetch(SUBSCRIBE_URL,{method:'POST',mode:'no-cors',body:fd}).then(function(){
+  /* URLSearchParams, not FormData. FormData posts as multipart, which Apps
+     Script does not reliably parse into e.parameter — the request arrives but
+     the values come through empty. */
+  var body=new URLSearchParams();
+  body.append('email',email);body.append('consent','yes');
+  body.append('source','invoice-generator');body.append('ts',new Date().toISOString());
+  fetch(SUBSCRIBE_URL,{method:'POST',mode:'no-cors',body:body}).then(function(){
     btn.textContent='Thanks!';toast('You\'re on the list');
     try{localStorage.setItem('invSubscribed','yes')}catch(e){}
     if($('creditSubbed'))$('creditSubbed').classList.remove('hide');
@@ -930,6 +971,8 @@ step('dates',function(){
   $('iDue').value=due.toISOString().slice(0,10);
   $('iNum').value=randomInvoiceNumber();
 });
+/* after dates, so a handed-over reference can override the random number */
+step('handover',readJob);
 step('design',function(){
   var sa='',st='';
   try{sa=localStorage.getItem('invAccent')||'';st=localStorage.getItem('invTheme')||''}catch(e){}
